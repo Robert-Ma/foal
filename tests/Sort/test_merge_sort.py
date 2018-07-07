@@ -1,4 +1,4 @@
-import eagle.Sort as eso
+import foal.Sort as eso
 
 
 def test_merge_sort_no_repeat_items():

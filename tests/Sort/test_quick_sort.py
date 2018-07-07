@@ -1,4 +1,4 @@
-from eagle.Sort import quick_sort
+from foal.Sort import quick_sort
 
 
 def test_quick_sort():

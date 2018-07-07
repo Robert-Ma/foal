@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='eagle',
+    name='foal',
     version='0.1.0',
     license='MIT',
-    description='Basic Algorithms with Python',
+    description='Foundations of Algorithms with Python3',
 
     author='Wei Ma',
     author_email='Wei-Ma@outlook.com.au',
