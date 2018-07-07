@@ -1,5 +1,7 @@
 **Quick Install:**
-    pip3 install git+https://github.com/path/to/this/repo
+```sh
+    pip3 install git+https://github.com/Robert-Ma/foal
+```
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
@@ -24,7 +26,7 @@ in [pypi](https://pypi.org). In fact, this package is only used to **practice** 
 1. You can install this automatically:
 
 ``` sh
-$ pip3 install git+https://github.com/path/to/this/repo
+$ pip3 install git+https://github.com/Robert-Ma/foal
 ```
 
 2. Or install manually:
@@ -57,7 +59,7 @@ import foal.Sort
 Update this package using pip3:
 
 ``` sh
-$ pip3 install -U git+https://github.com/path/to/this/repo
+$ pip3 install -U git+https://github.com/Robert-Ma/foal
 ```
 
 # License
