@@ -1,2 +1,2 @@
-from foal import Search
-from foal import Sort
+from foal import search
+from foal import sort

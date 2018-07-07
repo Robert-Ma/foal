@@ -50,8 +50,8 @@ $ pip3 uninstall foal
 
 ``` python3
 import foal
-import foal.Search
-import foal.Sort
+import foal.search
+import foal.sort
 ```
 
 # Update
