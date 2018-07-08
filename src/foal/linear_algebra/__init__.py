@@ -1,0 +1,3 @@
+from .strassen import (
+    strassen,
+)
