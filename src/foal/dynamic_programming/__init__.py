@@ -1,6 +1,6 @@
-from .memozation import (
+from .memoize import (
     memoize,
 )
-from .binomial_coefficient import (
+from .binomial_coeff import (
     binomial_coeff,
 )
