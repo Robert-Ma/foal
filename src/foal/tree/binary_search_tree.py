@@ -1,8 +1,26 @@
+"""
+Binary Search Tree
+
+This module implements binary search tree algorithm, which contains Node class,
+and BinarySearchTree class. This module does not contain many complex methods,
+and it just a simple implemention.
+"""
+
+
 class Node:
+    """
+    Node
+
+    This class contains value, parent node and children node.
+    """
+
     def __init__(self, value=None, left=None, right=None, parent=None):
         """
-        @param left Node object or None
-        @param right None object or None
+        Args:
+            value: any type
+            left: a Node object, left child node
+            right: a Node object, right child node
+            parent: a Node object, parent node
         """
         self.value = value
         self.left = left
@@ -10,6 +28,10 @@ class Node:
         self.parent = parent
 
     def insert(self, value):
+        """
+        Insert values, Put the smaller value in the left child and the
+        larger value in the right child.
+        """
         if self.value is not None:
             if value < self.value:
                 if self.left is None:
@@ -85,10 +107,20 @@ class Node:
 
 
 class BinarySearchTree:
+    """
+    Binary Search Tree
+
+    This binary search tree class implements such as adding values, deleting
+    values, comparing two trees, etc.
+    """
     def __init__(self):
         self.root = None
 
     def insert(self, value):
+        """
+        The first value should be the root node. Put the smaller value in the
+        left subtree and the larger value in the right subtree.
+        """
         if self.root:
             self.root.insert(value)
         else:
@@ -101,6 +133,9 @@ class BinarySearchTree:
             print('Binary Search Tree is empty.\n')
 
     def search(self, value):
+        """
+        Determine if a value is in the binary search tree.
+        """
         if self.root is None:
             return False
         else:
@@ -165,6 +200,9 @@ class BinarySearchTree:
         del cur_node
 
     def delete(self, value):
+        """
+        Delete a value from binary search tree.
+        """
         cur_node = self.get(value)
         if not cur_node:
             raise ValueError('No such value: {}'.format(value))
