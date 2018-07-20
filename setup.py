@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='foal',
-    version='0.1.0',
+    version='0.1.1',
     license='MIT',
     description='Foundations of Algorithms with Python3',
     long_description=open('README.md', 'r').read(),
