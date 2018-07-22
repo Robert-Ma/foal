@@ -25,48 +25,9 @@ LCS of S1 and S2 is clearly a zero-length string.
 """
 
 import numpy as np
-from foal.dynamic_programming import BioSeq, memoize
 
-
-class _Cell:
-    """
-    Cell of Score Table
-
-    Store score, and tracing back.
-    """
-    def __init__(self, score=None, row=None, col=None, prev_cell=None):
-        self._score = score
-        self._row = row
-        self._column = col
-        self._prev_cell = prev_cell
-
-    def get_score(self):
-        return self._score
-
-    def set_prev_cell(self, cell):
-        self._prev_cell = cell
-
-    def get_prev_cell(self):
-        return self._prev_cell
-
-    def get_row(self):
-        return self._row
-
-    def get_column(self):
-        return self._column
-
-    def __str__(self):
-        return self._score
-
-    def __repr__(self):
-        format_string = ''
-        if self._prev_cell:
-            format_string = '({}, {}, {})'.format(self.get_score(),
-                                                  self._prev_cell.get_row(),
-                                                  self._prev_cell.get_column())
-        else:
-            format_string = '({}, {}, {})'.format(self.get_score(), None, None)
-        return format_string
+from biological_data import BioSeq, ScoreCell
+from memoize import memoize
 
 
 class LCS:
@@ -87,7 +48,7 @@ class LCS:
         self._seq_left = seq_left
         self._seq_top = seq_top
         self._score_table = np.zeros((len(self._seq_left) + 1,
-                                      len(self._seq_top) + 1), dtype=_Cell)
+                                      len(self._seq_top) + 1), dtype=ScoreCell)
         self._cal_score_table()
 
     @memoize()
@@ -100,7 +61,7 @@ class LCS:
         Returns:
             (match_score, cell_ptr):
                 match_score: cell score, a float
-                cell_ptr: the previe cell, a _Cell object or None
+                cell_ptr: the previe cell, a ScoreCell object or None
         """
 
         match_score = 0.
@@ -139,7 +100,7 @@ class LCS:
         for row in range(len(self._seq_left) + 1):
             for col in range(len(self._seq_top) + 1):
                 match_score, cell_ptr = self._cal_one_cell_score(row, col)
-                self._score_table[row, col] = _Cell(match_score, int(row),
+                self._score_table[row, col] = ScoreCell(match_score, int(row),
                                                     int(col), cell_ptr)
 
     def get_score_table(self):
