@@ -9,3 +9,7 @@ from .binomial_coeff import (
 from .sequence_alignment import (
     BioSeq,
 )
+
+from .longest_common_subsequence import (
+    LCS,
+)
