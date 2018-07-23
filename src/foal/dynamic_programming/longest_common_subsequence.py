@@ -26,8 +26,8 @@ LCS of S1 and S2 is clearly a zero-length string.
 
 import numpy as np
 
-from biological_data import BioSeq, ScoreCell
-from memoize import memoize
+from .biological_data import BioSeq, ScoreCell
+from .memoize import memoize
 
 
 class LCS:
@@ -101,7 +101,7 @@ class LCS:
             for col in range(len(self._seq_top) + 1):
                 match_score, cell_ptr = self._cal_one_cell_score(row, col)
                 self._score_table[row, col] = ScoreCell(match_score, int(row),
-                                                    int(col), cell_ptr)
+                                                        int(col), cell_ptr)
 
     def get_score_table(self):
         """
