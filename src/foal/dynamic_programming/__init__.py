@@ -14,3 +14,7 @@ from .biological_data import (
     BioSeq,
     ScoreCell,
 )
+
+from .sequence_alignment import (
+    Align,
+)

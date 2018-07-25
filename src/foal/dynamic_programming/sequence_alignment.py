@@ -8,143 +8,181 @@ computing local alignments.
 By the way, BioPython (https://github.com/biopython/biopython) is the expert
 tool for this problem.
 """
-import sys
+
+import numpy as np
+
+from .biological_data import BioSeq, ScoreCell
+from .memoize import memoize
+
+MATCH = +1
+MISMATCH_INDEL = -1
 
 
-class BioSeq:
+class Align:
     """
-    Sequence object
+    Sequence Alignment
 
-    Biological sequence (e.g. RNA, DNA, protein) is immutable. This BioSeq
-    object just provides basic methods (such as count, reverse).
-    Sequence alignment will surported by another class.
+    There are three situation:
+        (1) Match: The two letters at the currnt index the same.
+        (2) Mismatch: The two letters at the currnt index are different.
+        (3) Indel(INsertion or DELetion): The best alignment involves one
+            letter aligning to a gap in the other string.
+    For now, the system used by Needleman and Wunsch will be used:
+        - Match: +1
+        - Mismatch or Indel: -1
+    For the example above, the score of the alignment would be 0:
+        GCATG-CU
+        | ||  |
+        G-ATTACA
+    score = (-1) * 4 + (+1) * 4 = 0
+
+    (From: https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm)
     """
 
-    def __init__(self, data):
+    def __init__(self, seq_left, seq_top, match_score=MATCH,
+                 mismatch_score=MISMATCH_INDEL, indel_score=MISMATCH_INDEL):
         """
-        Create a Sequence object
-
         Args:
-            data: a python string, which is sequence
+            seq_left: a bd.BioSeq object
+            seq_top: a bd.BioSeq object
+            match_score: match rewards
+            mismatch_score: mismatch penalty
+            indel_score: insert or delete penalty
         """
-        if not isinstance(data, str):
-            raise TypeError('The sequence data should a python string.')
-        self._data = data.upper()
+        if not isinstance(seq_left, BioSeq) or not isinstance(seq_top, BioSeq):
+            raise TypeError("Object should be bd.BioSeq.")
+        self._seq_left = seq_left
+        self._seq_top = seq_top
 
-    def __str__(self):
-        return self._data
+        self._score_table = np.zeros((len(self._seq_left) + 1,
+                                      len(self._seq_top) + 1), dtype=ScoreCell)
+        self._cal_score_table()
 
-    def __repr__(self):
-        return self._data
+        self._match = match_score  # match score
+        self._mismatch = mismatch_score  # mismatch score
+        self._indel = indel_score  # insert or delete score
 
-    def __len__(self):
-        """Return the length of the sequence."""
-        return len(self._data)
-
-    def __eq__(self, other):
+    @memoize()
+    def _cal_one_cell_score(self, row, col):
         """
-        Compare two BioSeq object.
+        Calculate one cell score
+
+        Choose order: left-top -> top -> left.
+
+        Returns:
+            (match_score, cell_ptr):
+                match_score: cell score, a float
+                cell_ptr: the previe cedtype=bd.ScoreCell object or None
         """
-        if isinstance(other, BioSeq):
-            if str(self) == str(other):
-                return True
+
+        match_score = 0
+        prev_ptr = None
+
+        if row == 0 and col == 0:
+            match_score = 0
+            prev_ptr = None
+        elif row == 0 and col != 0:
+            left_cell = self._score_table[row, col - 1]
+            left_cell_score = left_cell.get_score()
+            match_score = left_cell_score + MISMATCH_INDEL   # Gap
+            prev_ptr = left_cell
+        elif row != 0 and col == 0:
+            top_cell = self._score_table[row - 1, col]
+            top_cell_score = top_cell.get_score()
+            match_score = top_cell_score + MISMATCH_INDEL  # Gap
+            prev_ptr = top_cell
+        else:
+            top_cell = self._score_table[row - 1, col]
+            left_cell = self._score_table[row, col - 1]
+            top_left_cell = self._score_table[row - 1, col - 1]
+
+            if self._seq_left[row - 1] == self._seq_top[col - 1]:
+                score_from_left = left_cell.get_score() + self._indel  # Gap
+                score_from_top = top_cell.get_score() + self._indel    # Gap
+                score_from_top_left = (top_left_cell.get_score() +
+                                       self._match)  # Match
             else:
-                return False
-        else:
-            raise TypeError('Another compare object should be BioSeq.')
+                score_from_left = left_cell.get_score() + self._indel  # Gap
+                score_from_top = top_cell.get_score() + self._indel    # Gap
+                score_from_top_left = (top_left_cell.get_score() +
+                                       self._mismatch)              # Mismatch
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+            scores = {
+                'top_left': (score_from_top_left, top_left_cell),
+                'top': (score_from_top, top_cell),
+                'left': (score_from_left, left_cell),
+            }
+            (match_score, prev_ptr) = max(scores.items(),
+                                          key=lambda x: x[1][0])[1]
 
-    def __add__(self, other):
-        """
-        Add another BioSeq or python string to this sequence.
+        return match_score, prev_ptr
 
-        Args:
-            other: a BioSeq or python string.
+    def _cal_score_table(self):
         """
-        if isinstance(other, BioSeq):
-            return self.__class__(str(self) + str(other))
-        elif isinstance(other, str):
-            return self.__class__(str(self) + other)
-        else:
-            raise TypeError("Another object shoud be a BioSeq object"
-                            " or a python string.")
+        Calculate very cell scores using loop
+        """
+        for row in range(len(self._seq_left) + 1):
+            for col in range(len(self._seq_top) + 1):
+                match_score, cell_ptr = self._cal_one_cell_score(row, col)
+                self._score_table[row, col] = ScoreCell(match_score, int(row),
+                                                        int(col), cell_ptr)
 
-    def __radd__(self, other):
-        """Add a sequence on the left.
+    def get_score_table(self):
+        """
+        Get all cells' scores, it is a numpy.array
+        """
+        return self._score_table
 
-        Args:
-            other: a BioSeq or python string.
+    def get_trace_back(self):
         """
-        if isinstance(other, BioSeq):
-            return self.__class__(str(other) + str(self))
-        elif isinstance(other, str):
-            return self.__class__(other + str(self))
-        else:
-            raise TypeError("Another object shoud be a BioSeq object"
-                            " or a python string.")
+        Tracing back to find an actual align sequences.
 
-    def __mul__(self, multiple):
+        Returns:
+        Returns two list(), which contain the alignment.
         """
-        Multiply BioSeq by integer.
+        seq_top_aling = list()
+        seq_left_aling = list()
 
-        Args:
-            multiple: a integer
-        """
-        if not isinstance(multiple, int):
-            raise TypeError("can not multiply {} by non-int type".format(
-                self.__class__.__name__))
-        return self.__class__(str(self) * multiple)
+        cur_cell = self._score_table[-1, -1]
 
-    def __rmul__(self, multiple):
-        """
-        Multiply BioSeq by integer.
+        while cur_cell.get_prev_cell() is not None:
+            prev_cell = cur_cell.get_prev_cell()
 
-        Args:
-            multiple: a integer
-        """
-        if not isinstance(multiple, int):
-            raise TypeError("can not multiply {} by non-int type".format(
-                self.__class__.__name__))
-        return self.__class__(str(self) * multiple)
+            if (cur_cell.get_row() == prev_cell.get_row() + 1 and
+                (cur_cell.get_column() == prev_cell.get_column() + 1)):
+                # prev_cell is top_left
+                seq_left_aling.append(self._seq_left[cur_cell.get_row() - 1])
+                seq_top_aling.append(self._seq_top[cur_cell.get_column() - 1])
+            elif (cur_cell.get_row() == prev_cell.get_row() + 1 and
+                  cur_cell.get_column() == prev_cell.get_column()):
+                # prev_cell is top
+                seq_left_aling.append(self._seq_left[cur_cell.get_row() - 1])
+                seq_top_aling.append('-')
+            elif (cur_cell.get_row() == prev_cell.get_row() and
+                  cur_cell.get_column() == prev_cell.get_column() + 1):
+                # prev_cell is left
+                seq_left_aling.append('-')
+                seq_top_aling.append(self._seq_top[cur_cell.get_column() - 1])
 
-    def __imul__(self, multiple):
-        """
-        Multiply BioSeq in-place
-        """
-        if not isinstance(multiple, int):
-            raise TypeError("can not multiply {} by non-int type".format(
-                self.__class__.__name__))
-        return self.__class__(str(self) * multiple)
+            cur_cell = prev_cell
 
-    def __getitem__(self, index):
-        """
-        Return a sub-string of single letter. Both indexing and for loop can
-        call __getitem__.
+        seq_left_aling.reverse()
+        seq_top_aling.reverse()
+        return seq_left_aling, seq_top_aling
 
-        Args:
-            index: a integer, and must be smaller than length of BioSeq object.
-        """
-        return self._data[index]
+    def display(self):
+        left_aling, top_aling = self.get_trace_back()
+        match_sign = list()
 
-    def __contains__(self, chars):
-        """
-        Preferred for 'in'
-        """
-        return str.upper(chars) in self._data
+        for i in range(len(left_aling)):
+            if left_aling[i] == top_aling[i]:
+                match_sign.append('|')
+            else:
+                match_sign.append(' ')
 
-    def count(self, substr, start=0, end=sys.maxsize):
-        """
-        Return the number of non-overlapping occurrences of substring substr
-        in BioSeq[start:end].
-        """
-        if not isinstance(substr, str):
-            raise TypeError('substring should be a string.')
-        return self._data.count(str.upper(substr), start, end)
+        left_aling_str = ''.join(left_aling)
+        top_aling_str = ''.join(top_aling)
+        match_sign_str = ''.join(match_sign)
 
-    def reverse(self):
-        """
-        Reverse sequence, but DO NOT change itself, return a new BioSeq object.
-        """
-        return self.__class__(self._data[::-1])
+        print('{}\n{}\n{}'.format(top_aling_str, match_sign_str,
+                                  left_aling_str))
