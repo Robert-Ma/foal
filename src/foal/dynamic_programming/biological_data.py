@@ -170,6 +170,24 @@ class ScoreCell:
     def __str__(self):
         return self._score
 
+    def __eq__(self, other):
+        return True if self._score == other._score else False
+
+    def __ne__(self, other):
+        return not self.__eq__(self, other)
+
+    def __ge__(self, other):
+        return True if self._score >= other._score else False
+
+    def __gt__(self, other):
+        return True if self._score > other._score else False
+
+    def __le__(self, other):
+        return True if self._score <= other._score else False
+
+    def __lt__(self, other):
+        return True if self._score < other._score else False
+
     def __repr__(self):
         format_string = ''
         if self._prev_cell:
