@@ -16,5 +16,6 @@ from .biological_data import (
 )
 
 from .sequence_alignment import (
-    Align,
+    GlobalAlign,
+    LocalAlign,
 )

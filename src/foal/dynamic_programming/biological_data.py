@@ -168,7 +168,7 @@ class ScoreCell:
         return self._column
 
     def __str__(self):
-        return self._score
+        return '{}'.format(self._score)
 
     def __eq__(self, other):
         return True if self._score == other._score else False
