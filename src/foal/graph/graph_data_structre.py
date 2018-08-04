@@ -158,7 +158,7 @@ class UndirectedGraph:
 
     def get_edges_of_node(self, node):
         """
-        Get all edges which one node is given node.
+        Get all edges whose one node is given node.
 
         Return
             edges: set()
@@ -184,7 +184,7 @@ class UndirectedGraph:
         return another_node, nearest_edge
 
     def _is_right_node_name(self, node):
-        if not isinstance(node, int) or int < 0.:
+        if not isinstance(node, int) or node < 0.:
             raise ValueError('Node should be positive integer.')
         else:
             return True
