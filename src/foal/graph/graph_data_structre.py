@@ -133,6 +133,14 @@ class UndirectedGraph:
         self._V.add(node2)
         self._E.add(Edge(node1, node2, weight))
 
+    def get_edges(self):
+        """Get all edges"""
+        return self._E
+
+    def get_nodes(self):
+        """Get all nodes"""
+        return self._V
+
     def cal_adjacency_matrix(self):
         """
         Calculate adjacency matrix of graph.
