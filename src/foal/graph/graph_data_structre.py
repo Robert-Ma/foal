@@ -5,8 +5,10 @@ called the edges of G. Denote G by
                            G = (V, E)
 """
 
-import numpy as np
+import operator
 from collections import Counter
+
+import numpy as np
 
 
 class Edge:
@@ -77,25 +79,39 @@ class Edge:
         return True if node_name in self._nodes else False
 
     def __eq__(self, other):
-        return True if self._weight == other._weight else False
+        return self._compare(operator.eq, other)
 
     def __ne__(self, other):
-        return True if self._weight != other._weight else False
+        return self._compare(operator.ne, other)
 
     def __ge__(self, other):
-        return True if self._weight >= other._weight else False
+        return self._compare(operator.ge, other)
 
     def __gt__(self, other):
-        return True if self._weight > other._weight else False
+        return self._compare(operator.gt, other)
 
     def __le__(self, other):
-        return True if self._weight <= other._weight else False
+        return self._compare(operator.le, other)
 
     def __lt__(self, other):
-        return True if self._weight < other._weight else False
+        return self._compare(operator.lt, other)
 
     def __hash__(self):
         return hash((self._nodes, self._weight))
+
+    def _is_a_edge(self, other):
+        if isinstance(other, self.__class__):
+            return True
+        elif isinstance(other, (int, float)):
+            return False
+        else:
+            raise TypeError('another object should be Edge, integer or float.')
+
+    def _compare(self, oper, other):
+        if self._is_a_edge(other):
+            return True if oper(self._weight, other._weight) else False
+        else:
+            return True if oper(self._weight, other) else False
 
 
 class UndirectedGraph:
@@ -110,8 +126,8 @@ class UndirectedGraph:
             node1, node2: int, node name
             weight: float
         """
-        self._is_right_node_name(node1)
-        self._is_right_node_name(node2)
+        self._check_node_name_type(node1)
+        self._check_node_name_type(node2)
 
         self._V.add(node1)
         self._V.add(node2)
@@ -173,7 +189,7 @@ class UndirectedGraph:
 
     def get_nearest_edge_of_node(self, node):
         """
-        Get the nearest edge of a node.
+        Get the edge nearest to a node.
         """
         self._is_right_node_name(node)
 
@@ -183,8 +199,33 @@ class UndirectedGraph:
 
         return another_node, nearest_edge
 
+    def get_weight_of_edge(self, node1, node2):
+        self._is_right_node_name(node1)
+        self._is_right_node_name(node2)
+
+        weight = self._adjacency_mat[node1, node2]
+        return weight, self.get_edge_of_two_nodes(node1, node2)
+
+    def get_edge_of_two_nodes(self, node1, node2):
+        self._is_right_node_name(node1)
+        self._is_right_node_name(node2)
+
+        for edge in self._E:
+            if node1 in edge and node2 in edge:
+                return edge
+        return None
+
     def _is_right_node_name(self, node):
+        self._check_node_name_type(node)
+
+        if self._V:
+            if node < min(self._V) or node > max(self._V):
+                raise ValueError('No such Node.')
+        else:
+            return True
+
+    def _check_node_name_type(self, node):
         if not isinstance(node, int) or node < 0.:
-            raise ValueError('Node should be positive integer.')
+            raise TypeError('Node should be positive integer.')
         else:
             return True
