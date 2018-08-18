@@ -115,6 +115,9 @@ class Edge:
 
 
 class UndirectedGraph:
+    """
+    Weighted Undirected Graph
+    """
     def __init__(self):
         self._V = set()   # nodes, integers
         self._E = set()   # edges, Edge objects
@@ -237,3 +240,10 @@ class UndirectedGraph:
             raise TypeError('Node should be positive integer.')
         else:
             return True
+
+
+class DirectedGraph:
+    """
+    Weighted Directed Graph.
+    """
+    pass
