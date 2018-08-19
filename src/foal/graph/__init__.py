@@ -9,3 +9,7 @@ from .minimum_spanning_tree import (
     prim,
     kruskal,
 )
+
+from .dijkstra import (
+    Dijkstra,
+)

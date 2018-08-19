@@ -275,6 +275,10 @@ class DirectedEdge(Edge):
         """
         return True if self.get_last_node() == node else False
 
+    def __repr__(self):
+        return '{}-->{}: {}'.format(self._nodes[0], self._nodes[1],
+                                    self._weight)
+
 
 class DirectedGraph:
     """
@@ -308,7 +312,7 @@ class DirectedGraph:
         for edge in self._E:
             last_nodes.add(edge.get_last_node())
 
-        return self._V.difference(last_nodes)
+        return tuple(self._V.difference(last_nodes))
 
     def get_end_node(self):
         """
@@ -318,7 +322,38 @@ class DirectedGraph:
         for edge in self._E:
             first_nodes.add(edge.get_first_node())
 
-        return self._V.difference(first_nodes)
+        return tuple(self._V.difference(first_nodes))
+
+    def get_edges_start_with(self, node):
+        edges = set()
+        for edge in self._E:
+            if edge.is_first_node(node):
+                edges.add(edge)
+        return edges
+
+    def get_nodes(self):
+        return self._V
+
+    def get_edges(self):
+        return self._E
+
+    def get_weights(self):
+        weights = list()
+        for edge in self._E:
+            weights.append(edge.get_weight())
+        return tuple(weights)
+
+    def get_child_nodes(self, node):
+        """
+        Get all child nodes of `node`.
+        """
+        self._check_node_name_type(node)
+        child_nodes = set()
+
+        for edge in self._E:
+            if edge.is_first_node(node):
+                child_nodes.add(edge.get_last_node())
+        return child_nodes
 
     def _check_node_name_type(self, node):
         if not isinstance(node, int) or node < 0.:
