@@ -242,8 +242,86 @@ class UndirectedGraph:
             return True
 
 
+class DirectedEdge(Edge):
+    def __init__(self, node_name_1, node_name_2, weight):
+        """
+        This edge starts with `node_name_1`, and end with `node_name_2`.
+        The weight of this edge is `weight`.
+        Both `node_name_1` and `node_name_2` are integers.
+        """
+        super().__init__(node_name_1, node_name_2, weight)
+
+    def get_first_node(self):
+        """
+        Get the first node of directed edge.
+        """
+        return self._nodes[0]
+
+    def get_last_node(self):
+        """
+        Get last node of directed edge.
+        """
+        return self._nodes[-1]
+
+    def is_first_node(self, node):
+        """
+        Determine if `node` is the first node of edge.
+        """
+        return True if self.get_first_node() == node else False
+
+    def is_last_node(self, node):
+        """
+        Determine if `node` is the last node of edge.
+        """
+        return True if self.get_last_node() == node else False
+
+
 class DirectedGraph:
     """
     Weighted Directed Graph.
     """
-    pass
+
+    def __init__(self):
+        self._V = set()   # nodes, integers
+        self._E = set()   # edges, Edge objects
+
+    def add_edges(self, node1, node2, weight):
+        """
+        Add directed edge, this edge starts with `node1` and ends with `node2`,
+        and its weight is `weight`.
+
+        Both `node1` and `node2` are positive integers; `weight` should be
+        positive float.
+        """
+        self._check_node_name_type(node1)
+        self._check_node_name_type(node2)
+
+        self._V.add(node1)
+        self._V.add(node2)
+        self._E.add(DirectedEdge(node1, node2, weight))
+
+    def get_start_node(self):
+        """
+        Get start node of graph.
+        """
+        last_nodes = set()
+        for edge in self._E:
+            last_nodes.add(edge.get_last_node())
+
+        return self._V.difference(last_nodes)
+
+    def get_end_node(self):
+        """
+        Get end node of graph.
+        """
+        first_nodes = set()
+        for edge in self._E:
+            first_nodes.add(edge.get_first_node())
+
+        return self._V.difference(first_nodes)
+
+    def _check_node_name_type(self, node):
+        if not isinstance(node, int) or node < 0.:
+            raise TypeError('Node should be positive integer.')
+        else:
+            return True
